@@ -91,7 +91,14 @@ $$;
 drop policy if exists "Users can view their own snapshots" on public.snapshots;
 drop policy if exists "Users can view permitted snapshots" on public.snapshots;
 create policy "Users can view permitted snapshots" on public.snapshots
-  for select using (auth.uid() = user_id or public.is_admin());
+  for select using (
+    auth.uid() = user_id or
+    public.is_admin() or
+    exists (
+      select 1 from public.users
+      where id = auth.uid() and role = 'coordinator'
+    )
+  );
 
 drop policy if exists "Coordinators can create snapshots" on public.snapshots;
 create policy "Coordinators can create snapshots" on public.snapshots
@@ -137,7 +144,14 @@ drop policy if exists "Users can read permitted snapshot files" on storage.objec
 create policy "Users can read permitted snapshot files" on storage.objects
   for select using (
     bucket_id = 'snapshots' and
-    (split_part(name, '/', 1) = auth.uid()::text or public.is_admin())
+    (
+      split_part(name, '/', 1) = auth.uid()::text or
+      public.is_admin() or
+      exists (
+        select 1 from public.users
+        where id = auth.uid() and role = 'coordinator'
+      )
+    )
   );
 
 -- Only coordinators can delete their own files.

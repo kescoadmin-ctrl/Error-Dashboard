@@ -49,13 +49,15 @@ export default function Snapshots({ user, snapshots, onBreadcrumbChange, onSnaps
                 <td>{snap.flagCount || 0}</td>
                 <td><span className="badge" style={{ backgroundColor: 'var(--olive)' }}>Active</span></td>
                 <td>
-                  <button
-                    className="btn"
-                    style={{ padding: '4px 8px', fontSize: '12px' }}
-                    onClick={() => handleDelete(snap.dateStr)}
-                  >
-                    Delete
-                  </button>
+                  {snap.userId === user.id && (
+                    <button
+                      className="btn"
+                      style={{ padding: '4px 8px', fontSize: '12px' }}
+                      onClick={() => handleDelete(snap.dateStr)}
+                    >
+                      Delete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}
