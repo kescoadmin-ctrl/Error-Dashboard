@@ -185,17 +185,20 @@ export function getSubstationPerformance(oldRecords, newRecords) {
     const resolved = oldAtSubstation.filter(record => !newIds.has(String(record.COMPLAINT_NO || ''))).length
     const newAdded = newAtSubstation.filter(record => !oldIds.has(String(record.COMPLAINT_NO || ''))).length
 
-    const solvedToNewRatio = newAdded === 0
-      ? (resolved > 0 ? Infinity : 0)
-      : resolved / newAdded
+    const previousComplaints = oldAtSubstation.length
+    const pending = newAtSubstation.length
+    const resolutionRate = previousComplaints === 0 ? 0 : resolved / previousComplaints
+    const newComplaintRate = previousComplaints === 0 ? (newAdded > 0 ? 1 : 0) : newAdded / previousComplaints
+    const pendingRate = previousComplaints === 0 ? (pending > 0 ? 1 : 0) : pending / previousComplaints
+    const rankingScore = (resolutionRate * 0.5) + ((1 - Math.min(newComplaintRate, 1)) * 0.3) + ((1 - Math.min(pendingRate, 1)) * 0.2)
 
     return {
       substation,
-      oldCount: oldAtSubstation.length,
-      currentCount: newAtSubstation.length,
+      previousComplaints,
+      pending,
       resolved,
       newAdded,
-      solvedToNewRatio,
+      rankingScore,
       netChange: newAtSubstation.length - oldAtSubstation.length,
     }
   })

@@ -53,6 +53,7 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
   const [searchFilter, setSearchFilter] = useState('')
   const [selectedVerticals, setSelectedVerticals] = useState([])
   const [selectedTypes, setSelectedTypes] = useState([])
+  const [selectedAgings, setSelectedAgings] = useState([])
   const [openFilter, setOpenFilter] = useState(null)
   const chartRef = useRef(null)
   const chartInstance = useRef(null)
@@ -90,6 +91,7 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
     setSearchFilter('')
     setSelectedVerticals([])
     setSelectedTypes([])
+    setSelectedAgings([])
     setOpenFilter(null)
   }
 
@@ -141,7 +143,8 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
       const matchesSearch = !searchFilter || r.COMPLAINT_NO?.toString().toLowerCase().includes(searchFilter.toLowerCase())
       const matchesVertical = selectedVerticals.length === 0 || selectedVerticals.includes(r.VERTICAL || 'Unknown')
       const matchesType = selectedTypes.length === 0 || selectedTypes.includes(r.COMPLAINT_TYPE || 'Unknown')
-      return matchesSearch && matchesVertical && matchesType
+      const matchesAging = selectedAgings.length === 0 || selectedAgings.includes(r.AGING || 'Unknown')
+      return matchesSearch && matchesVertical && matchesType && matchesAging
     })
   }
 
@@ -273,6 +276,17 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
                   open={openFilter === 'type'}
                   onToggle={() => setOpenFilter(openFilter === 'type' ? null : 'type')}
                 />
+                <MultiSelectDropdown
+                  label="Aging"
+                  options={getFilterOptions('AGING')}
+                  selected={selectedAgings}
+                  onChange={setSelectedAgings}
+                  open={openFilter === 'aging'}
+                  onToggle={() => setOpenFilter(openFilter === 'aging' ? null : 'aging')}
+                />
+                <span className="compare-filter-count">
+                  Showing {getDrillData().length} of {(compareResult[drillType] || []).length} complaints
+                </span>
               </div>
               <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
                 <table>

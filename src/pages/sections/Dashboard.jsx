@@ -149,11 +149,11 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
 
   const renderSubstationTable = () => {
     const data = getSubstationPerformance(oldData.records, newData.records)
-      .sort((a, b) => b.solvedToNewRatio - a.solvedToNewRatio || b.resolved - a.resolved || a.newAdded - b.newAdded)
+      .sort((a, b) => b.rankingScore - a.rankingScore || b.resolved - a.resolved || a.pending - b.pending)
     const tbody = document.querySelector('#tableSubstation tbody')
     if (tbody) {
       tbody.innerHTML = data
-        .map((station, idx) => `<tr><td>${idx + 1}</td><td>${station.substation}</td><td>${station.resolved}</td><td>${station.newAdded}</td><td>${Number.isFinite(station.solvedToNewRatio) ? station.solvedToNewRatio.toFixed(2) : '∞'}</td></tr>`)
+        .map((station, idx) => `<tr><td>${idx + 1}</td><td>${station.substation}</td><td>${station.previousComplaints}</td><td>${station.resolved}</td><td>${station.newAdded}</td><td>${station.pending}</td></tr>`)
         .join('')
     }
   }
@@ -278,8 +278,8 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
         </div>
       </div>
 
-      <div className="grid-2 dashboard-lower-grid">
-        <div className="panel substation-performance-panel">
+      <div className="grid-2">
+        <div className="panel">
           <h2 className="serif">Category Breakdown (Old vs Present)</h2>
           <div className="mb-10">
             View by:
@@ -307,13 +307,13 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
         </div>
       </div>
 
-      <div className="grid-2">
-        <div className="panel">
+      <div className="grid-2 dashboard-lower-grid">
+        <div className="panel substation-performance-panel">
           <h2 className="serif">Substation Performance Ranking</h2>
-          <p className="text-muted performer-description">Higher solved-to-new ratios rank first. A substation with resolved complaints and no new complaints receives the highest score.</p>
+          <p className="text-muted performer-description">Ranked using previous workload, resolved complaints, newly added complaints, and current pending backlog.</p>
           <div id="substationScrollWrap" style={{ maxHeight: '300px', overflowY: 'auto' }}>
             <table id="tableSubstation">
-              <thead><tr><th>Rank</th><th>Substation</th><th>Resolved</th><th>Newly Added</th><th>Solved / New</th></tr></thead>
+              <thead><tr><th>Rank</th><th>Substation</th><th>Previous</th><th>Resolved</th><th>Newly Added</th><th>Pending</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>

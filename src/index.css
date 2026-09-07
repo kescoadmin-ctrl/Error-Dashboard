@@ -406,7 +406,13 @@ body.capturing #substationScrollWrap {
 }
 
 .substation-performance-panel table {
-    min-width: 560px;
+    min-width: 680px;
+}
+
+.compare-filter-count {
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 8px 0;
 }
 
 .performer-panel-top {
