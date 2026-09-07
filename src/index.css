@@ -415,6 +415,18 @@ body.capturing #substationScrollWrap {
     padding: 8px 0;
 }
 
+.search-results-table {
+    min-width: 760px;
+    table-layout: auto;
+}
+
+.search-results-table th,
+.search-results-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+    vertical-align: top;
+}
+
 .performer-panel-top {
     border-top: 4px solid var(--green);
 }

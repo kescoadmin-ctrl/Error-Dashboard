@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { getSnapshotRecords, getAllSnapshots } from '../../utils/db'
 
+function getRecordFields(records) {
+  return [...new Set(records.flatMap(record => Object.keys(record)))].sort()
+}
+
 export default function Search({ user, snapshots, onBreadcrumbChange }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
@@ -61,24 +65,20 @@ export default function Search({ user, snapshots, onBreadcrumbChange }) {
         <div key={idx} className="mt-10">
           <h3 className="serif">{result.dateStr} ({result.filename})</h3>
           <div style={{ overflowX: 'auto', marginTop: '10px' }}>
-            <table>
+            <table className="search-results-table">
               <thead>
                 <tr>
-                  <th>Complaint No.</th>
-                  <th>Type</th>
-                  <th>Vertical</th>
-                  <th>Aging</th>
-                  <th>Substation</th>
+                  {getRecordFields(result.records).map(field => (
+                    <th key={field}>{field.replaceAll('_', ' ')}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {result.records.map((record, ridx) => (
                   <tr key={ridx}>
-                    <td>{record.COMPLAINT_NO}</td>
-                    <td>{record.COMPLAINT_TYPE}</td>
-                    <td>{record.VERTICAL}</td>
-                    <td>{record.AGING}</td>
-                    <td>{record.SUBSTATION}</td>
+                    {getRecordFields(result.records).map(field => (
+                      <td key={field}>{record[field] == null ? '' : String(record[field])}</td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
