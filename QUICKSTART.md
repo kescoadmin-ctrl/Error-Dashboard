@@ -28,8 +28,8 @@ Follow [SETUP.md](./SETUP.md) to:
 ```bash
 cp .env.example .env
 # Edit .env with your Supabase credentials:
-# VITE_SUPABASE_URL=your_project_url
-# VITE_SUPABASE_ANON_KEY=your_anon_key
+# SUPABASE_URL=your_project_url
+# SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ## 4. Run Locally (1 min)

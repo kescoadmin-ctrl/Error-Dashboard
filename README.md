@@ -67,8 +67,8 @@ cp .env.example .env
 Edit `.env` with your Supabase credentials:
 
 ```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### 3. Create First Users
@@ -122,8 +122,8 @@ npm run build
 ### 2. Set Environment Variables
 
 In your hosting platform, add:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 
 ### 3. Deploy
 
@@ -249,7 +249,7 @@ When a Coordinator uploads or modifies data, an Administrator's dashboard update
 - Check user has appropriate permissions
 
 ### Login fails or redirects
-- Verify `.env` variables are correct (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY)
+- Verify `.env` variables are correct (SUPABASE_URL and SUPABASE_ANON_KEY)
 - Check email confirmation is complete (if required)
 - Check Firebase project authentication is enabled
 - Ensure user exists in Firebase Auth

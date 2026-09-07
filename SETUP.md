@@ -159,8 +159,8 @@ where email = 'coordinator@yourdomain.com';
 
 1. In your project root, create or edit `.env`:
    ```
-   VITE_SUPABASE_URL=your_project_url_here
-   VITE_SUPABASE_ANON_KEY=your_anon_key_here
+  SUPABASE_URL=your_project_url_here
+  SUPABASE_ANON_KEY=your_anon_key_here
    ```
 
    Replace with values from step 6.
@@ -286,8 +286,8 @@ All tables have RLS enabled with policies that ensure:
    ```
 
 2. Set environment variables in your hosting platform:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
+  - `SUPABASE_URL`
+  - `SUPABASE_ANON_KEY`
 
 3. Deploy the `dist` folder
 
