@@ -6,6 +6,14 @@ export default function PrivateRoute({ user, userRole, requiredRole, children })
     return <Navigate to="/" replace />
   }
 
+  if (!userRole) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <p>Loading account...</p>
+      </div>
+    )
+  }
+
   if (userRole !== requiredRole) {
     return <Navigate to="/" replace />
   }

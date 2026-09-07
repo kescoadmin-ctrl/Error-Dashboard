@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import CoordinatorLayout from './pages/CoordinatorLayout'
 import AdminLayout from './pages/AdminLayout'
 import PrivateRoute from './components/PrivateRoute'
+import AppErrorBoundary from './components/AppErrorBoundary'
 
 import './index.css'
 
@@ -76,8 +77,9 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
+    <AppErrorBoundary>
+      <Router>
+        <Routes>
         {/* Public routes */}
         <Route path="/" element={<RoleSelector />} />
         <Route path="/login/administrator" element={<LoginPage role="administrator" />} />
@@ -100,8 +102,9 @@ function App() {
             </PrivateRoute>
           }
         />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AppErrorBoundary>
   )
 }
 
