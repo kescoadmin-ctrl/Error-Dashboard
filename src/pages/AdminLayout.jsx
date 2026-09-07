@@ -13,6 +13,7 @@ import Download from './sections/Download'
 import { getAllSnapshots, onSnapshotsUpdate } from '../utils/db'
 
 export default function AdminLayout({ user }) {
+  const dataUser = { ...user, id: null }
   const [theme, setTheme] = useState(() => localStorage.getItem('kesco_theme') || 'light')
   const [snapshots, setSnapshots] = useState([])
   const [flaggedCount, setFlaggedCount] = useState(0)
@@ -29,14 +30,14 @@ export default function AdminLayout({ user }) {
 
   const refreshSnapshots = async () => {
     if (!user) return
-    applySnapshots(await getAllSnapshots(user.id))
+    applySnapshots(await getAllSnapshots())
   }
 
   // Subscribe to snapshot updates
   useEffect(() => {
     if (!user) return
 
-    const unsubscribe = onSnapshotsUpdate(user.id, applySnapshots)
+    const unsubscribe = onSnapshotsUpdate(null, applySnapshots)
 
     return unsubscribe
   }, [user])
@@ -73,35 +74,35 @@ export default function AdminLayout({ user }) {
           <Routes>
             <Route
               path="dashboard"
-              element={<Dashboard user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Dashboard user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="flagged"
-              element={<Flagged user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Flagged user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="trend"
-              element={<Trend user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Trend user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="snapshots"
-              element={<Snapshots user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Snapshots user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="compare"
-              element={<Compare user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Compare user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="errors"
-              element={<Errors user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Errors user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="search"
-              element={<Search user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Search user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route
               path="download"
-              element={<Download user={user} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
+              element={<Download user={dataUser} snapshots={snapshots} onSectionChange={setCurrentSection} onBreadcrumbChange={setBreadcrumb} />}
             />
             <Route path="*" element={<Navigate to="dashboard" replace />} />
           </Routes>

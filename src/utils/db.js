@@ -7,6 +7,7 @@ const AGING_BUCKETS = ['0-24hrs', '24 hrs to 3 Days', '3 to 7 Days', '7 to 15 Da
 function normalizeSnapshot(snapshot) {
   return {
     ...snapshot,
+    userId: snapshot.user_id,
     dateStr: snapshot.date_str,
     selectedColumns: snapshot.selected_columns,
     hasSource: snapshot.has_source,
@@ -19,11 +20,14 @@ function normalizeSnapshot(snapshot) {
 // Get all snapshots for current user
 export async function getAllSnapshots(userId) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from(SNAPSHOTS_TABLE)
       .select('*')
-      .eq('user_id', userId)
       .order('date_str', { ascending: false })
+
+    if (userId) query = query.eq('user_id', userId)
+
+    const { data, error } = await query
 
     if (error) throw error
     return (data || []).map(normalizeSnapshot)
@@ -37,13 +41,12 @@ export async function getAllSnapshots(userId) {
 export function onSnapshotsUpdate(userId, callback) {
   getAllSnapshots(userId).then(callback)
 
+  const changeConfig = { event: '*', schema: 'public', table: SNAPSHOTS_TABLE }
+  if (userId) changeConfig.filter = `user_id=eq.${userId}`
+
   const subscription = supabase
-    .channel(`snapshots:${userId}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: SNAPSHOTS_TABLE, filter: `user_id=eq.${userId}` },
-      () => getAllSnapshots(userId).then(callback),
-    )
+    .channel(`snapshots:${userId || 'all'}`)
+    .on('postgres_changes', changeConfig, () => getAllSnapshots(userId).then(callback))
     .subscribe()
 
   // Return unsubscribe function
@@ -55,12 +58,15 @@ export function onSnapshotsUpdate(userId, callback) {
 // Get a single snapshot
 export async function getSnapshot(userId, dateStr) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from(SNAPSHOTS_TABLE)
       .select('*')
-      .eq('user_id', userId)
       .eq('date_str', dateStr)
       .single()
+
+    if (userId) query = query.eq('user_id', userId)
+
+    const { data, error } = await query
 
     if (error) {
       if (error.code === 'PGRST116') return null // Not found
@@ -114,14 +120,23 @@ export async function saveSnapshot(userId, dateStr, metadata, records) {
 // Get full records from storage
 export async function getSnapshotRecords(userId, dateStr) {
   try {
-    const fileName = `${userId}/snapshots/${dateStr}/records.json`
-    const { data, error } = await supabase.storage
-      .from('snapshots')
-      .download(fileName)
+    const owners = userId ? [userId] : []
+    if (!owners.length) {
+      const snapshots = await getAllSnapshots()
+      snapshots
+        .filter(snapshot => snapshot.dateStr === dateStr)
+        .forEach(snapshot => owners.push(snapshot.userId))
+    }
 
-    if (error) throw error
-    const text = await data.text()
-    return JSON.parse(text)
+    let lastError = null
+    for (const ownerId of owners) {
+      const fileName = `${ownerId}/snapshots/${dateStr}/records.json`
+      const { data, error } = await supabase.storage.from('snapshots').download(fileName)
+      if (!error) return JSON.parse(await data.text())
+      lastError = error
+    }
+
+    throw lastError || new Error('No snapshot owner found')
   } catch (error) {
     console.error('Error fetching records:', error)
     return { records: [], flagged: [] }
