@@ -33,19 +33,34 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   // Load data when dates change
   useEffect(() => {
     const loadData = async () => {
-      if (dateOld) {
-        const snap = await getSnapshot(user.id, dateOld)
-        if (snap) {
-          const records = await getSnapshotRecords(user.id, dateOld)
-          setOldData(records)
+      setOldData(null)
+      setNewData(null)
+
+      const loadSnapshotData = async (date) => {
+        if (!date) return { records: [], flagged: [], hasSource: false }
+
+        const snap = await getSnapshot(user.id, date)
+        if (!snap) return { records: [], flagged: [], hasSource: false }
+
+        const storedData = await getSnapshotRecords(user.id, date)
+        return {
+          records: Array.isArray(storedData.records) ? storedData.records : [],
+          flagged: Array.isArray(storedData.flagged) ? storedData.flagged : [],
+          hasSource: Boolean(snap.hasSource),
         }
       }
-      if (dateNew) {
-        const snap = await getSnapshot(user.id, dateNew)
-        if (snap) {
-          const records = await getSnapshotRecords(user.id, dateNew)
-          setNewData(records)
-        }
+
+      try {
+        const [oldSnapshotData, newSnapshotData] = await Promise.all([
+          loadSnapshotData(dateOld),
+          loadSnapshotData(dateNew),
+        ])
+        setOldData(oldSnapshotData)
+        setNewData(newSnapshotData)
+      } catch (error) {
+        console.error('Error loading dashboard data:', error)
+        setOldData({ records: [], flagged: [], hasSource: false })
+        setNewData({ records: [], flagged: [], hasSource: false })
       }
     }
     loadData()
@@ -139,14 +154,18 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   }
 
   const renderSourceChart = () => {
+    const emptyState = document.getElementById('sourceEmptyState')
+    const chartContainer = document.getElementById('chartSourceContainer')
+    if (!emptyState || !chartContainer) return
+
     if (!newData.hasSource) {
-      document.getElementById('sourceEmptyState').classList.remove('hidden')
-      document.getElementById('chartSourceContainer').classList.add('hidden')
+      emptyState.classList.remove('hidden')
+      chartContainer.classList.add('hidden')
       return
     }
 
-    document.getElementById('sourceEmptyState').classList.add('hidden')
-    document.getElementById('chartSourceContainer').classList.remove('hidden')
+    emptyState.classList.add('hidden')
+    chartContainer.classList.remove('hidden')
 
     const data = getSourceData(newData.records)
     updateChart('chartSource', {
@@ -181,6 +200,10 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
 
     chartInstances.current[canvasId] = new Chart(ctx, config)
   }
+
+  useEffect(() => () => {
+    Object.values(chartInstances.current).forEach(chart => chart.destroy())
+  }, [])
 
   const kpis = oldData && newData ? calculateKPIs() : { oldPending: 0, presentPending: 0, resolved: 0, newAdded: 0, flagged: 0 }
 
