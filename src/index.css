@@ -415,40 +415,49 @@ body.capturing #substationScrollWrap {
     padding: 8px 0;
 }
 
-.search-results-table {
-    min-width: 760px;
-    table-layout: auto;
-}
-
-.search-results-table th,
-.search-results-table td {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    vertical-align: top;
-}
-
 .search-results-scroll {
     max-width: 100%;
-    max-height: 360px;
     margin-top: 10px;
-    overflow: auto;
     border: 1px solid var(--border-color);
     background: var(--surface-color);
 }
 
-.search-results-scroll table {
-    margin: 0;
+.search-record-card {
+    margin: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-color);
 }
 
-.search-results-scroll th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    box-shadow: 0 1px 0 var(--border-color);
+.search-record-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 28%) 1fr;
+    border-bottom: 1px solid var(--border-color);
 }
 
-.search-results-scroll tbody tr:hover {
+.search-record-row:last-child {
+    border-bottom: 0;
+}
+
+.search-record-label,
+.search-record-value {
+    min-width: 0;
+    padding: 9px 11px;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
+}
+
+.search-record-label {
     background: var(--table-header);
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: capitalize;
+}
+
+.search-record-value {
+    color: var(--text-main);
+    font-size: 13px;
 }
 
 .search-conflict-badge,

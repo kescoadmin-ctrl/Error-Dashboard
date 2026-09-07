@@ -104,24 +104,16 @@ export default function Search({ user, snapshots, onBreadcrumbChange }) {
             )}
           </h3>
           <div className="search-results-scroll">
-            <table className="search-results-table">
-              <thead>
-                <tr>
-                  {getRecordFields(result.records).map(field => (
-                    <th key={field}>{field.replaceAll('_', ' ')}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.records.map((record, ridx) => (
-                  <tr key={ridx}>
-                    {getRecordFields(result.records).map(field => (
-                      <td key={field}>{record[field] == null ? '' : String(record[field])}</td>
-                    ))}
-                  </tr>
+            {result.records.map((record, ridx) => (
+              <div className="search-record-card" key={ridx}>
+                {getRecordFields([record]).map(field => (
+                  <div className="search-record-row" key={field}>
+                    <div className="search-record-label">{field.replaceAll('_', ' ')}</div>
+                    <div className="search-record-value">{record[field] == null ? '' : String(record[field])}</div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            ))}
           </div>
         </div>
       ))}
