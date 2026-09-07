@@ -1,0 +1,7 @@
+apiKey: "AIzaSyDQAWFrKxCem-C6mxJmokniTwJeiUgv_cs",
+  authDomain: "error-dashboard-233d0.firebaseapp.com",
+  projectId: "error-dashboard-233d0",
+  storageBucket: "error-dashboard-233d0.firebasestorage.app",
+  messagingSenderId: "449914030696",
+  appId: "1:449914030696:web:56614f9410c185ca2209dd",
+  measurementId: "G-9LP29VT7HY"

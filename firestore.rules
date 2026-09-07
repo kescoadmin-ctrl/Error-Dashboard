@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - each user has a role document
+    match /users/{userId} {
+      allow read, write: if request.auth.uid == userId;
+
+      // Snapshots subcollection - coordinators can read/write own, admins can only read
+      match /snapshots/{snapshotId} {
+        allow read: if request.auth.uid == userId;
+        allow create, update, delete: if 
+          request.auth.uid == userId && 
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'coordinator';
+      }
+    }
+
+    // No other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
