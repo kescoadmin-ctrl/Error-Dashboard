@@ -18,6 +18,7 @@ export default class AppErrorBoundary extends React.Component {
       <div className="error-boundary">
         <h1 className="serif">Something went wrong</h1>
         <p>The dashboard could not render this screen.</p>
+        <p className="error-boundary-details">{this.state.error?.message || 'Unknown application error'}</p>
         <button className="primary" onClick={() => window.location.reload()}>
           Reload Dashboard
         </button>

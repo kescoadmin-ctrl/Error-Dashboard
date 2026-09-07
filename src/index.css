@@ -667,6 +667,16 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     background: var(--bg-color);
 }
 
+.error-boundary-details {
+    max-width: 680px;
+    padding: 10px 14px;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 768px) {
     body {
         overflow: auto;

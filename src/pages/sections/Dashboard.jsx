@@ -70,11 +70,15 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   useEffect(() => {
     if (!oldData || !newData) return
 
-    renderCategoryChart()
-    renderFlowChart()
-    renderAgingChart()
-    renderSubstationTable()
-    renderSourceChart()
+    try {
+      renderCategoryChart()
+      renderFlowChart()
+      renderAgingChart()
+      renderSubstationTable()
+      renderSourceChart()
+    } catch (error) {
+      console.error('Error rendering dashboard charts:', error)
+    }
   }, [oldData, newData, categoryBy, topN])
 
   const renderCategoryChart = () => {
