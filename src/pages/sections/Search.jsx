@@ -5,6 +5,15 @@ function getRecordFields(records) {
   return [...new Set(records.flatMap(record => Object.keys(record)))].sort()
 }
 
+function normalizeRecord(record) {
+  return Object.keys(record)
+    .sort()
+    .reduce((normalized, key) => {
+      normalized[key] = record[key] == null ? '' : String(record[key])
+      return normalized
+    }, {})
+}
+
 export default function Search({ user, snapshots, onBreadcrumbChange }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [results, setResults] = useState([])
@@ -36,7 +45,31 @@ export default function Search({ user, snapshots, onBreadcrumbChange }) {
       }
     }
 
-    setResults(foundResults)
+    const matchesByComplaint = new Map()
+    foundResults.forEach(result => {
+      result.records.forEach(record => {
+        const complaintNo = String(record.COMPLAINT_NO || '')
+        const matches = matchesByComplaint.get(complaintNo) || []
+        matches.push({ ...result, records: [record] })
+        matchesByComplaint.set(complaintNo, matches)
+      })
+    })
+
+    const consolidatedResults = []
+    matchesByComplaint.forEach(matches => {
+      const uniqueRecords = new Set(matches.map(match => JSON.stringify(normalizeRecord(match.records[0]))))
+      if (uniqueRecords.size === 1) {
+        consolidatedResults.push({
+          ...matches[0],
+          records: [matches[0].records[0]],
+          matchingFileCount: matches.length,
+        })
+      } else {
+        matches.forEach(match => consolidatedResults.push({ ...match, hasConflict: true }))
+      }
+    })
+
+    setResults(consolidatedResults)
   }
 
   return (
@@ -63,8 +96,14 @@ export default function Search({ user, snapshots, onBreadcrumbChange }) {
 
       {results.map((result, idx) => (
         <div key={idx} className="mt-10">
-          <h3 className="serif">{result.dateStr} ({result.filename})</h3>
-          <div style={{ overflowX: 'auto', marginTop: '10px' }}>
+          <h3 className="serif">
+            {result.dateStr} ({result.filename})
+            {result.hasConflict && <span className="search-conflict-badge">Conflict detected</span>}
+            {!result.hasConflict && result.matchingFileCount > 1 && (
+              <span className="search-match-note">Same details found in {result.matchingFileCount} files</span>
+            )}
+          </h3>
+          <div className="search-results-scroll">
             <table className="search-results-table">
               <thead>
                 <tr>
