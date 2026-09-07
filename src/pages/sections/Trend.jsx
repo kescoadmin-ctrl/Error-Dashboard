@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Chart } from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { getTrendData } from '../../utils/export'
 
-Chart.register(ChartDataLabels)
+Chart.register(...registerables, ChartDataLabels)
 
 export default function Trend({ user, snapshots, onBreadcrumbChange }) {
   const [topN, setTopN] = useState(10)

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Chart } from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { getSnapshot, getSnapshotRecords } from '../../utils/db'
-import { getCategoryBreakdownData, getFlowData, getAgingBucketData, getSubstationData, getSourceData } from '../../utils/export'
+import { getCategoryBreakdownData, getFlowData, getAgingBucketData, getSubstationData, getSourceData, getSubstationPerformance } from '../../utils/export'
 
-Chart.register(ChartDataLabels)
+Chart.register(...registerables, ChartDataLabels)
 
 export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   const [dateOld, setDateOld] = useState('')
@@ -226,6 +226,14 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
     }
   }
 
+  const performance = oldData && newData ? getSubstationPerformance(oldData.records, newData.records) : []
+  const topPerformers = [...performance]
+    .sort((a, b) => b.resolved - a.resolved || a.newAdded - b.newAdded)
+    .slice(0, 3)
+  const bottomPerformers = [...performance]
+    .sort((a, b) => b.newAdded - a.newAdded || a.resolved - b.resolved || a.netChange - b.netChange)
+    .slice(0, 3)
+
   return (
     <div>
       <div className="flex-between mb-10">
@@ -321,6 +329,50 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
           <div className="chart-container" id="chartSourceContainer">
             <canvas ref={(el) => (chartRefs.current['chartSource'] = el)} id="chartSource"></canvas>
           </div>
+        </div>
+      </div>
+
+      <div className="performer-grid">
+        <div className="panel performer-panel performer-panel-top">
+          <h2 className="serif">Top 3 Performers</h2>
+          <p className="text-muted performer-description">Substations with the most complaints resolved between the selected dates.</p>
+          {topPerformers.length === 0 ? (
+            <div className="empty-state">Select comparison dates to view performance.</div>
+          ) : (
+            <div className="performer-list">
+              {topPerformers.map((performer, index) => (
+                <div className="performer-row" key={performer.substation}>
+                  <div className="performer-rank">{index + 1}</div>
+                  <div className="performer-name">{performer.substation}</div>
+                  <div className="performer-metric">
+                    <strong>{performer.resolved}</strong>
+                    <span>resolved</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="panel performer-panel performer-panel-bottom">
+          <h2 className="serif">Bottom 3 Performers</h2>
+          <p className="text-muted performer-description">Substations with rising complaints or fewer resolutions.</p>
+          {bottomPerformers.length === 0 ? (
+            <div className="empty-state">Select comparison dates to view performance.</div>
+          ) : (
+            <div className="performer-list">
+              {bottomPerformers.map((performer, index) => (
+                <div className="performer-row" key={performer.substation}>
+                  <div className="performer-rank">{index + 1}</div>
+                  <div className="performer-name">{performer.substation}</div>
+                  <div className="performer-metric">
+                    <strong>{performer.newAdded > 0 ? `+${performer.newAdded}` : performer.resolved}</strong>
+                    <span>{performer.newAdded > 0 ? 'new complaints' : 'resolved'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

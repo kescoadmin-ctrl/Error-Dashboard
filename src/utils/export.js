@@ -171,6 +171,31 @@ export function getSubstationData(records, topN) {
   }
 }
 
+export function getSubstationPerformance(oldRecords, newRecords) {
+  const oldIds = new Set(oldRecords.map(record => String(record.COMPLAINT_NO || '')))
+  const newIds = new Set(newRecords.map(record => String(record.COMPLAINT_NO || '')))
+  const substations = new Set([
+    ...oldRecords.map(record => record.SUBSTATION || 'Unknown'),
+    ...newRecords.map(record => record.SUBSTATION || 'Unknown'),
+  ])
+
+  return Array.from(substations).map(substation => {
+    const oldAtSubstation = oldRecords.filter(record => (record.SUBSTATION || 'Unknown') === substation)
+    const newAtSubstation = newRecords.filter(record => (record.SUBSTATION || 'Unknown') === substation)
+    const resolved = oldAtSubstation.filter(record => !newIds.has(String(record.COMPLAINT_NO || ''))).length
+    const newAdded = newAtSubstation.filter(record => !oldIds.has(String(record.COMPLAINT_NO || ''))).length
+
+    return {
+      substation,
+      oldCount: oldAtSubstation.length,
+      currentCount: newAtSubstation.length,
+      resolved,
+      newAdded,
+      netChange: newAtSubstation.length - oldAtSubstation.length,
+    }
+  })
+}
+
 export function getSourceData(records) {
   const sources = {}
   records.forEach(r => {

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Chart } from 'chart.js'
+import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { getSnapshotRecords, getCompareDiff } from '../../utils/db'
 import { getFlowData } from '../../utils/export'
 
-Chart.register(ChartDataLabels)
+Chart.register(...registerables, ChartDataLabels)
 
 export default function Compare({ user, snapshots, onBreadcrumbChange }) {
   const [oldDate, setOldDate] = useState('')
