@@ -6,14 +6,57 @@ import { getFlowData } from '../../utils/export'
 
 Chart.register(...registerables, ChartDataLabels)
 
+function MultiSelectDropdown({ label, options, selected, onChange, open, onToggle }) {
+  const toggleOption = (option) => {
+    onChange(selected.includes(option)
+      ? selected.filter(value => value !== option)
+      : [...selected, option])
+  }
+
+  return (
+    <div className="multi-select">
+      <button type="button" className="multi-select-trigger" onClick={onToggle} aria-expanded={open}>
+        {label}: {selected.length ? `${selected.length} selected` : 'All'} <span aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="multi-select-menu">
+          {options.length === 0 ? (
+            <span className="multi-select-empty">No values available</span>
+          ) : (
+            options.map(option => (
+              <label className="multi-select-option" key={option}>
+                <input
+                  type="checkbox"
+                  checked={selected.includes(option)}
+                  onChange={() => toggleOption(option)}
+                />
+                <span>{option}</span>
+              </label>
+            ))
+          )}
+          {selected.length > 0 && (
+            <button type="button" className="multi-select-clear" onClick={() => onChange([])}>
+              Clear selection
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Compare({ user, snapshots, onBreadcrumbChange }) {
   const [oldDate, setOldDate] = useState('')
   const [newDate, setNewDate] = useState('')
   const [compareResult, setCompareResult] = useState(null)
   const [drillType, setDrillType] = useState(null)
   const [searchFilter, setSearchFilter] = useState('')
+  const [selectedVerticals, setSelectedVerticals] = useState([])
+  const [selectedTypes, setSelectedTypes] = useState([])
+  const [openFilter, setOpenFilter] = useState(null)
   const chartRef = useRef(null)
   const chartInstance = useRef(null)
+  const filterRef = useRef(null)
 
   useEffect(() => {
     onBreadcrumbChange('Home › Data Management › Compare Two Dates')
@@ -38,11 +81,16 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
       newDate,
       oldFile: snapshots.find(s => s.dateStr === oldDate),
       newFile: snapshots.find(s => s.dateStr === newDate),
+      oldRecords: oldRecords.records,
+      newRecords: newRecords.records,
       ...diff,
     })
 
-    renderFlowChart(oldRecords.records, newRecords.records)
     setDrillType(null)
+    setSearchFilter('')
+    setSelectedVerticals([])
+    setSelectedTypes([])
+    setOpenFilter(null)
   }
 
   const renderFlowChart = (oldRecords, newRecords) => {
@@ -77,14 +125,40 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
     }
   }
 
+  useEffect(() => {
+    if (!compareResult) return
+    renderFlowChart(compareResult.oldRecords, compareResult.newRecords)
+  }, [compareResult])
+
+  useEffect(() => () => {
+    chartInstance.current?.destroy()
+  }, [])
+
   const getDrillData = () => {
     if (!compareResult || !drillType) return []
     const data = compareResult[drillType] || []
     return data.filter(r => {
-      if (!searchFilter) return true
-      return r.COMPLAINT_NO?.toString().includes(searchFilter)
+      const matchesSearch = !searchFilter || r.COMPLAINT_NO?.toString().toLowerCase().includes(searchFilter.toLowerCase())
+      const matchesVertical = selectedVerticals.length === 0 || selectedVerticals.includes(r.VERTICAL || 'Unknown')
+      const matchesType = selectedTypes.length === 0 || selectedTypes.includes(r.COMPLAINT_TYPE || 'Unknown')
+      return matchesSearch && matchesVertical && matchesType
     })
   }
+
+  const getFilterOptions = (field) => {
+    if (!compareResult || !drillType) return []
+    return [...new Set((compareResult[drillType] || []).map(row => row[field] || 'Unknown'))].sort()
+  }
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (filterRef.current && !filterRef.current.contains(event.target)) {
+        setOpenFilter(null)
+      }
+    }
+    document.addEventListener('mousedown', handleOutsideClick)
+    return () => document.removeEventListener('mousedown', handleOutsideClick)
+  }, [])
 
   return (
     <div className="panel">
@@ -175,14 +249,31 @@ export default function Compare({ user, snapshots, onBreadcrumbChange }) {
             <div className="panel">
               <h2 className="serif flex-between">
                 <span>{drillType.charAt(0).toUpperCase() + drillType.slice(1)} Details</span>
+              </h2>
+              <div className="compare-filters" ref={filterRef}>
                 <input
                   type="text"
                   placeholder="Filter by Complaint No..."
                   value={searchFilter}
                   onChange={(e) => setSearchFilter(e.target.value)}
-                  style={{ width: '220px' }}
                 />
-              </h2>
+                <MultiSelectDropdown
+                  label="Vertical"
+                  options={getFilterOptions('VERTICAL')}
+                  selected={selectedVerticals}
+                  onChange={setSelectedVerticals}
+                  open={openFilter === 'vertical'}
+                  onToggle={() => setOpenFilter(openFilter === 'vertical' ? null : 'vertical')}
+                />
+                <MultiSelectDropdown
+                  label="Type"
+                  options={getFilterOptions('COMPLAINT_TYPE')}
+                  selected={selectedTypes}
+                  onChange={setSelectedTypes}
+                  open={openFilter === 'type'}
+                  onToggle={() => setOpenFilter(openFilter === 'type' ? null : 'type')}
+                />
+              </div>
               <div style={{ maxHeight: '350px', overflowY: 'auto' }}>
                 <table>
                   <thead>

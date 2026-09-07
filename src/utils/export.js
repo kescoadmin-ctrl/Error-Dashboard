@@ -185,12 +185,17 @@ export function getSubstationPerformance(oldRecords, newRecords) {
     const resolved = oldAtSubstation.filter(record => !newIds.has(String(record.COMPLAINT_NO || ''))).length
     const newAdded = newAtSubstation.filter(record => !oldIds.has(String(record.COMPLAINT_NO || ''))).length
 
+    const solvedToNewRatio = newAdded === 0
+      ? (resolved > 0 ? Infinity : 0)
+      : resolved / newAdded
+
     return {
       substation,
       oldCount: oldAtSubstation.length,
       currentCount: newAtSubstation.length,
       resolved,
       newAdded,
+      solvedToNewRatio,
       netChange: newAtSubstation.length - oldAtSubstation.length,
     }
   })

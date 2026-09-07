@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Chart, registerables } from 'chart.js'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import { getSnapshot, getSnapshotRecords } from '../../utils/db'
-import { getCategoryBreakdownData, getFlowData, getAgingBucketData, getSubstationData, getSourceData, getSubstationPerformance } from '../../utils/export'
+import { getCategoryBreakdownData, getFlowData, getAgingBucketData, getSourceData, getSubstationPerformance } from '../../utils/export'
 
 Chart.register(...registerables, ChartDataLabels)
 
@@ -148,11 +148,12 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   }
 
   const renderSubstationTable = () => {
-    const data = getSubstationData(newData.records, topN)
+    const data = getSubstationPerformance(oldData.records, newData.records)
+      .sort((a, b) => b.solvedToNewRatio - a.solvedToNewRatio || b.resolved - a.resolved || a.newAdded - b.newAdded)
     const tbody = document.querySelector('#tableSubstation tbody')
     if (tbody) {
-      tbody.innerHTML = data.labels
-        .map((station, idx) => `<tr><td>${station}</td><td>${data.data[idx]}</td></tr>`)
+      tbody.innerHTML = data
+        .map((station, idx) => `<tr><td>${idx + 1}</td><td>${station.substation}</td><td>${station.resolved}</td><td>${station.newAdded}</td><td>${Number.isFinite(station.solvedToNewRatio) ? station.solvedToNewRatio.toFixed(2) : '∞'}</td></tr>`)
         .join('')
     }
   }
@@ -227,13 +228,6 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
   }
 
   const performance = oldData && newData ? getSubstationPerformance(oldData.records, newData.records) : []
-  const topPerformers = [...performance]
-    .sort((a, b) => b.resolved - a.resolved || a.newAdded - b.newAdded)
-    .slice(0, 3)
-  const bottomPerformers = [...performance]
-    .sort((a, b) => b.newAdded - a.newAdded || a.resolved - b.resolved || a.netChange - b.netChange)
-    .slice(0, 3)
-
   return (
     <div>
       <div className="flex-between mb-10">
@@ -284,8 +278,8 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
         </div>
       </div>
 
-      <div className="grid-2">
-        <div className="panel">
+      <div className="grid-2 dashboard-lower-grid">
+        <div className="panel substation-performance-panel">
           <h2 className="serif">Category Breakdown (Old vs Present)</h2>
           <div className="mb-10">
             View by:
@@ -315,10 +309,11 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
 
       <div className="grid-2">
         <div className="panel">
-          <h2 className="serif">Substation Breakdown (Present)</h2>
+          <h2 className="serif">Substation Performance Ranking</h2>
+          <p className="text-muted performer-description">Higher solved-to-new ratios rank first. A substation with resolved complaints and no new complaints receives the highest score.</p>
           <div id="substationScrollWrap" style={{ maxHeight: '300px', overflowY: 'auto' }}>
             <table id="tableSubstation">
-              <thead><tr><th>Substation</th><th>Pending Count</th></tr></thead>
+              <thead><tr><th>Rank</th><th>Substation</th><th>Resolved</th><th>Newly Added</th><th>Solved / New</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -329,50 +324,6 @@ export default function Dashboard({ user, snapshots, onBreadcrumbChange }) {
           <div className="chart-container" id="chartSourceContainer">
             <canvas ref={(el) => (chartRefs.current['chartSource'] = el)} id="chartSource"></canvas>
           </div>
-        </div>
-      </div>
-
-      <div className="performer-grid">
-        <div className="panel performer-panel performer-panel-top">
-          <h2 className="serif">Top 3 Performers</h2>
-          <p className="text-muted performer-description">Substations with the most complaints resolved between the selected dates.</p>
-          {topPerformers.length === 0 ? (
-            <div className="empty-state">Select comparison dates to view performance.</div>
-          ) : (
-            <div className="performer-list">
-              {topPerformers.map((performer, index) => (
-                <div className="performer-row" key={performer.substation}>
-                  <div className="performer-rank">{index + 1}</div>
-                  <div className="performer-name">{performer.substation}</div>
-                  <div className="performer-metric">
-                    <strong>{performer.resolved}</strong>
-                    <span>resolved</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="panel performer-panel performer-panel-bottom">
-          <h2 className="serif">Bottom 3 Performers</h2>
-          <p className="text-muted performer-description">Substations with rising complaints or fewer resolutions.</p>
-          {bottomPerformers.length === 0 ? (
-            <div className="empty-state">Select comparison dates to view performance.</div>
-          ) : (
-            <div className="performer-list">
-              {bottomPerformers.map((performer, index) => (
-                <div className="performer-row" key={performer.substation}>
-                  <div className="performer-rank">{index + 1}</div>
-                  <div className="performer-name">{performer.substation}</div>
-                  <div className="performer-metric">
-                    <strong>{performer.newAdded > 0 ? `+${performer.newAdded}` : performer.resolved}</strong>
-                    <span>{performer.newAdded > 0 ? 'new complaints' : 'resolved'}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
     </div>
