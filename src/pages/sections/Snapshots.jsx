@@ -6,10 +6,10 @@ export default function Snapshots({ user, snapshots, onBreadcrumbChange, onSnaps
     onBreadcrumbChange('Home › Data Management › Uploaded Data Files')
   }, [onBreadcrumbChange])
 
-  const handleDelete = async (dateStr) => {
-    if (confirm(`Delete data for ${dateStr}?`)) {
+  const handleDelete = async (snapshot) => {
+    if (confirm(`Delete data for ${snapshot.dateStr}?`)) {
       try {
-        await deleteSnapshot(user.id, dateStr)
+        await deleteSnapshot(snapshot.userId, snapshot.dateStr)
         await onSnapshotsChange?.()
         alert('Data deleted successfully')
       } catch (error) {
@@ -49,15 +49,13 @@ export default function Snapshots({ user, snapshots, onBreadcrumbChange, onSnaps
                 <td>{snap.flagCount || 0}</td>
                 <td><span className="badge" style={{ backgroundColor: 'var(--olive)' }}>Active</span></td>
                 <td>
-                  {snap.userId === user.id && (
-                    <button
-                      className="btn"
-                      style={{ padding: '4px 8px', fontSize: '12px' }}
-                      onClick={() => handleDelete(snap.dateStr)}
-                    >
-                      Delete
-                    </button>
-                  )}
+                  <button
+                    className="btn"
+                    style={{ padding: '4px 8px', fontSize: '12px' }}
+                    onClick={() => handleDelete(snap)}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}

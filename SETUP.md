@@ -111,7 +111,12 @@ create policy "Coordinators can update their snapshots" on public.snapshots
 
 drop policy if exists "Coordinators can delete their snapshots" on public.snapshots;
 create policy "Coordinators can delete their snapshots" on public.snapshots
-  for delete using (auth.uid() = user_id and not public.is_admin());
+  for delete using (
+    exists (
+      select 1 from public.users
+      where id = auth.uid() and role = 'coordinator'
+    )
+  );
 ```
 
 ### 3. Setup Storage Bucket
@@ -154,14 +159,16 @@ create policy "Users can read permitted snapshot files" on storage.objects
     )
   );
 
--- Only coordinators can delete their own files.
+-- Any coordinator can delete a coordinator-owned snapshot file.
 drop policy if exists "Users can delete their own files" on storage.objects;
 drop policy if exists "Coordinators can delete snapshot files" on storage.objects;
 create policy "Coordinators can delete snapshot files" on storage.objects
   for delete using (
     bucket_id = 'snapshots' and
-    split_part(name, '/', 1) = auth.uid()::text and
-    not public.is_admin()
+    exists (
+      select 1 from public.users
+      where id = auth.uid() and role = 'coordinator'
+    )
   );
 ```
 
