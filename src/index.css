@@ -622,6 +622,30 @@ input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focu
     width: 100%;
 }
 
+.password-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrap input {
+    padding-right: 62px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 4px;
+    padding: 4px 7px;
+    border: 0;
+    background: transparent;
+    color: var(--navy);
+    font-size: 12px;
+}
+
+.password-toggle:hover {
+    background: var(--table-zebra);
+}
+
 .auth-error {
     background-color: #ffe6e6;
     color: var(--red);

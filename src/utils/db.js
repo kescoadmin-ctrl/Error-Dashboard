@@ -4,6 +4,18 @@ import { supabase } from '../supabase'
 const SNAPSHOTS_TABLE = 'snapshots'
 const AGING_BUCKETS = ['0-24hrs', '24 hrs to 3 Days', '3 to 7 Days', '7 to 15 Days', '15 to 30 Days', '30 to 90 Days', '90+ Days']
 
+function normalizeSnapshot(snapshot) {
+  return {
+    ...snapshot,
+    dateStr: snapshot.date_str,
+    selectedColumns: snapshot.selected_columns,
+    hasSource: snapshot.has_source,
+    recordCount: snapshot.record_count,
+    flagCount: snapshot.flag_count,
+    updatedAt: snapshot.updated_at,
+  }
+}
+
 // Get all snapshots for current user
 export async function getAllSnapshots(userId) {
   try {
@@ -14,7 +26,7 @@ export async function getAllSnapshots(userId) {
       .order('date_str', { ascending: false })
 
     if (error) throw error
-    return data || []
+    return (data || []).map(normalizeSnapshot)
   } catch (error) {
     console.error('Error fetching snapshots:', error)
     return []
@@ -54,7 +66,7 @@ export async function getSnapshot(userId, dateStr) {
       if (error.code === 'PGRST116') return null // Not found
       throw error
     }
-    return data
+    return normalizeSnapshot(data)
   } catch (error) {
     console.error('Error fetching snapshot:', error)
     return null
@@ -119,7 +131,14 @@ export async function getSnapshotRecords(userId, dateStr) {
 // Delete snapshot
 export async function deleteSnapshot(userId, dateStr) {
   try {
-    // Delete from database
+    // Remove the stored records before removing the metadata row.
+    const fileName = `${userId}/snapshots/${dateStr}/records.json`
+    const { error: storageError } = await supabase.storage
+      .from('snapshots')
+      .remove([fileName])
+
+    if (storageError) throw storageError
+
     const { error: dbError } = await supabase
       .from(SNAPSHOTS_TABLE)
       .delete()
@@ -127,14 +146,6 @@ export async function deleteSnapshot(userId, dateStr) {
       .eq('date_str', dateStr)
 
     if (dbError) throw dbError
-
-    // Delete storage file
-    const fileName = `${userId}/snapshots/${dateStr}/records.json`
-    const { error: storageError } = await supabase.storage
-      .from('snapshots')
-      .remove([fileName])
-
-    if (storageError) throw storageError
   } catch (error) {
     console.error('Error deleting snapshot:', error)
     throw error

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { deleteSnapshot } from '../../utils/db'
 
-export default function Snapshots({ user, snapshots, onBreadcrumbChange }) {
+export default function Snapshots({ user, snapshots, onBreadcrumbChange, onSnapshotsChange }) {
   useEffect(() => {
     onBreadcrumbChange('Home › Data Management › Uploaded Data Files')
   }, [onBreadcrumbChange])
@@ -10,6 +10,7 @@ export default function Snapshots({ user, snapshots, onBreadcrumbChange }) {
     if (confirm(`Delete data for ${dateStr}?`)) {
       try {
         await deleteSnapshot(user.id, dateStr)
+        await onSnapshotsChange?.()
         alert('Data deleted successfully')
       } catch (error) {
         alert(`Delete error: ${error.message}`)

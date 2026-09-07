@@ -10,7 +10,7 @@ import Compare from './sections/Compare'
 import Errors from './sections/Errors'
 import Search from './sections/Search'
 import Download from './sections/Download'
-import { onSnapshotsUpdate } from '../utils/db'
+import { getAllSnapshots, onSnapshotsUpdate } from '../utils/db'
 
 export default function AdminLayout({ user }) {
   const [theme, setTheme] = useState(() => localStorage.getItem('kesco_theme') || 'light')
@@ -20,20 +20,23 @@ export default function AdminLayout({ user }) {
   const [currentSection, setCurrentSection] = useState('dashboard')
   const [breadcrumb, setBreadcrumb] = useState('Home › Overview › Dashboard')
 
+  const applySnapshots = (updatedSnapshots) => {
+    setSnapshots(updatedSnapshots)
+    const latest = updatedSnapshots[0]
+    setFlaggedCount(latest?.flagCount || 0)
+    setErrorCount(0)
+  }
+
+  const refreshSnapshots = async () => {
+    if (!user) return
+    applySnapshots(await getAllSnapshots(user.id))
+  }
+
   // Subscribe to snapshot updates
   useEffect(() => {
     if (!user) return
 
-    const unsubscribe = onSnapshotsUpdate(user.id, (updatedSnapshots) => {
-      setSnapshots(updatedSnapshots)
-
-      // Calculate flagged count from latest snapshot
-      if (updatedSnapshots.length > 0) {
-        const latest = updatedSnapshots[0]
-        setFlaggedCount(latest.flagCount || 0)
-        setErrorCount(0)
-      }
-    })
+    const unsubscribe = onSnapshotsUpdate(user.id, applySnapshots)
 
     return unsubscribe
   }, [user])

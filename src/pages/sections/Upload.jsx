@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { saveSnapshot } from '../../utils/db'
 import { parseUploadedFile } from '../../utils/db'
 
-export default function Upload({ user, onSectionChange, onBreadcrumbChange }) {
+export default function Upload({ user, onSectionChange, onBreadcrumbChange, onSnapshotsChange }) {
   const [parsedData, setParsedData] = useState(null)
   const [uploadStatus, setUploadStatus] = useState('')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
@@ -66,6 +66,8 @@ export default function Upload({ user, onSectionChange, onBreadcrumbChange }) {
         hasSource: parsedData.hasSource,
         flagged: parsedData.flagged,
       }, cleanRecords)
+
+      await onSnapshotsChange?.()
 
       alert(`Data file for ${selectedDate} saved successfully!`)
       setParsedData(null)

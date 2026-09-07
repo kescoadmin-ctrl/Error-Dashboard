@@ -6,6 +6,7 @@ export default function LoginPage({ role }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -89,16 +90,28 @@ export default function LoginPage({ role }) {
               />
             </div>
 
-            <div>
+            <div className="password-field">
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div className="password-input-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={loading}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
 
             <button type="submit" className="primary" disabled={loading}>
